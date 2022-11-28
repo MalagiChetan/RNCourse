@@ -1,30 +1,35 @@
 import { StatusBar } from "expo-status-bar";
-import {
-  StyleSheet,
-  Text,
-  View,
-  ImageBackground,
-  SafeAreaView,
-} from "react-native";
+import { StyleSheet, ImageBackground, SafeAreaView } from "react-native";
 import { useFonts } from "expo-font";
 import StartGameScreen from "./screens/StartGameScreen";
 import { LinearGradient } from "expo-linear-gradient";
-import { useState, useEffect } from "react";
+import { useState, useCallback } from "react";
 import GameScreen from "./screens/GameScreen";
 import { Colors } from "./constants/colors";
 import GameOverScreen from "./screens/GameOverScreen";
-import AppLoading from "expo-app-loading";
+import * as SplashScreen from "expo-splash-screen";
 
 export default function App() {
   const [userNumber, setUserNumber] = useState();
   const [isGameOver, setIsGameOver] = useState(false);
   const [guessRounds, setGuessRounds] = useState(0);
-  console.log(guessRounds);
+
+  SplashScreen.preventAutoHideAsync();
 
   const [fontsLoaded] = useFonts({
     "open-sans": require("./assets/fonts/OpenSans-Regular.ttf"),
     "open-sans-bold": require("./assets/fonts/OpenSans-Bold.ttf"),
   });
+
+  const onLayoutRootView = useCallback(async () => {
+    if (fontsLoaded) {
+      await SplashScreen.hideAsync();
+    }
+  }, [fontsLoaded]);
+
+  if (!fontsLoaded) {
+    return null;
+  }
 
   const gameRoundCounter = () => {
     setGuessRounds((prev) => prev + 1);
@@ -35,10 +40,6 @@ export default function App() {
     setUserNumber("");
     setGuessRounds(0);
   };
-
-  if (!fontsLoaded) {
-    return <AppLoading />;
-  }
 
   function pickedNumber(pickedNumber) {
     setUserNumber(pickedNumber);
@@ -70,6 +71,7 @@ export default function App() {
       <LinearGradient
         colors={[Colors.purple, Colors.yellow300]}
         style={styles.rootScreen}
+        onLayout={onLayoutRootView}
       >
         <ImageBackground
           source={require("./assets/images/background.png")}
